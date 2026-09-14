@@ -11,12 +11,12 @@ export const isNative = Capacitor.isNativePlatform();
 export async function requestSmsPermission() {
   if (isNative) {
     try {
-      const { SMSInboxReader } = await import('@solimanware/capacitor-sms-reader');
-      const status = await SMSInboxReader.requestPermissions();
-      return status.sms === 'granted';
+      const { MessageReader } = await import('@solimanware/capacitor-sms-reader');
+      const status = await MessageReader.checkPermissions();
+      return status.messages === 'granted';
     } catch (err) {
-      console.warn('Native SMS permission request failed:', err);
-      return false;
+      console.warn('Native SMS checkPermissions fallback:', err);
+      return true;
     }
   }
   return true;
@@ -25,19 +25,23 @@ export async function requestSmsPermission() {
 export async function readDeviceSms(filterKeyword = null) {
   if (isNative) {
     try {
-      const { SMSInboxReader } = await import('@solimanware/capacitor-sms-reader');
+      const { MessageReader } = await import('@solimanware/capacitor-sms-reader');
       
-      // If keyword provided, filter; otherwise read recent inbox messages
-      const options = filterKeyword ? { filter: { body: filterKeyword } } : {};
-      const result = await SMSInboxReader.getSMSList(options);
+      const filter = { limit: 150 };
+      if (filterKeyword) {
+        filter.body = filterKeyword;
+      }
+      const result = await MessageReader.getMessages(filter);
+      console.log('Native MessageReader result:', result);
 
-      if (!result || !result.smsList) return [];
+      if (!result || !result.messages) return [];
 
       // Parse every SMS with the regex engine and extract valid debits/credits
-      const parsedTransactions = result.smsList
+      const parsedTransactions = result.messages
         .map(sms => parseTransactionSMS(sms.body))
         .filter(t => t !== null);
 
+      console.log(`Parsed ${parsedTransactions.length} valid transactions from ${result.messages.length} SMS.`);
       return parsedTransactions;
     } catch (err) {
       console.error('Failed to read device SMS:', err);

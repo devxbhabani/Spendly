@@ -75,13 +75,10 @@ export default function App() {
     if (isNative) {
       const autoSyncAndroid = async () => {
         try {
-          const granted = await requestSmsPermission();
-          if (granted) {
-            const deviceTxns = await readDeviceSms();
-            if (deviceTxns && deviceTxns.length > 0) {
-              await batchCreateTransactions(deviceTxns);
-              await loadData();
-            }
+          const deviceTxns = await readDeviceSms();
+          if (deviceTxns && deviceTxns.length > 0) {
+            await batchCreateTransactions(deviceTxns);
+            await loadData();
           }
         } catch (e) {
           console.warn('Auto native SMS sync failed:', e);
