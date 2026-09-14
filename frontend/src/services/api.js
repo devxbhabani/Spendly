@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://spendly-9qw5.onrender.com/api';
 
 export async function fetchTransactions() {
   const res = await fetch(`${API_BASE_URL}/transactions`);

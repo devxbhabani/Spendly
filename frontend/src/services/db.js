@@ -1,5 +1,6 @@
 import Dexie from 'dexie';
 import { categorizeMerchant } from '../utils/parser';
+import { API_BASE_URL } from './api';
 
 // Module 2: IndexedDB Local-First Database (Dexie.js)
 export const db = new Dexie('PersonalExpenseDB');
@@ -25,7 +26,7 @@ export async function saveTransaction(txn) {
 
   // 2. Sync to MongoDB Atlas backend API if online
   try {
-    const res = await fetch('/api/transactions', {
+    const res = await fetch(`${API_BASE_URL}/transactions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(entry),
