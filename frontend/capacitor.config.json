@@ -1,0 +1,5 @@
+{
+  "appId": "com.yourname.expensetracker",
+  "appName": "PersonalTracker",
+  "webDir": "dist"
+}
