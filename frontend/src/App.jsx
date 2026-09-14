@@ -23,6 +23,9 @@ import { Database, CheckCircle2, AlertCircle, Smartphone, ArrowRight, Sparkles }
 import confetti from 'canvas-confetti';
 
 export default function App() {
+  const [userName, setUserName] = useState(() => {
+    return localStorage.getItem('spendly_userName') || 'Bhabani';
+  });
   const [activeTab, setActiveTab] = useState('dashboard');
   const [transactions, setTransactions] = useState([]);
   const [analytics, setAnalytics] = useState(null);
@@ -36,6 +39,14 @@ export default function App() {
   // Quick SMS Input Bar state
   const [quickSms, setQuickSms] = useState('');
   const [quickParseResult, setQuickParseResult] = useState(null);
+
+  const handleUpdateUserName = (newName) => {
+    const trimmed = (newName || '').trim();
+    if (trimmed) {
+      setUserName(trimmed);
+      localStorage.setItem('spendly_userName', trimmed);
+    }
+  };
 
   // Load real data from Express + MongoDB Atlas backend
   const loadData = async () => {
@@ -195,7 +206,8 @@ export default function App() {
         <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
           {/* Header */}
           <Header 
-            userName="Bhabani"
+            userName={userName}
+            onUpdateUserName={handleUpdateUserName}
             onExport={handleExportCSV}
             onRefresh={loadData}
             onOpenSmsModal={() => setIsSmsModalOpen(true)}

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
 	Calendar,
 	Download,
@@ -6,16 +6,32 @@ import {
 	Menu,
 	Plus,
 	Smartphone,
+	Pencil,
+	Check,
+	X,
 } from "lucide-react";
 
 export default function Header({
 	userName = "Bhabani",
+	onUpdateUserName,
 	onExport,
 	onRefresh,
 	onOpenSmsModal,
 	onOpenAddModal,
 	isSyncing = false,
 }) {
+	const [isEditing, setIsEditing] = useState(false);
+	const [editValue, setEditValue] = useState(userName);
+
+	const handleSaveName = (e) => {
+		if (e) e.preventDefault();
+		const trimmed = editValue.trim();
+		if (trimmed && onUpdateUserName) {
+			onUpdateUserName(trimmed);
+		}
+		setIsEditing(false);
+	};
+
 	const currentDate = new Intl.DateTimeFormat("en-US", {
 		month: "long",
 		year: "numeric",
@@ -25,10 +41,53 @@ export default function Header({
 		<header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
 			{/* User Greeting */}
 			<div>
-				<h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-[#12141A] flex items-center gap-2">
-					Welcome Back, {userName}!{" "}
-					<span className="inline-block animate-bounce">👋</span>
-				</h1>
+				<div className="flex items-center gap-2">
+					{isEditing ? (
+						<form onSubmit={handleSaveName} className="flex items-center gap-2 flex-wrap">
+							<span className="text-2xl lg:text-3xl font-bold tracking-tight text-[#12141A]">
+								Welcome Back,
+							</span>
+							<input
+								type="text"
+								value={editValue}
+								onChange={(e) => setEditValue(e.target.value)}
+								autoFocus
+								className="text-2xl lg:text-3xl font-bold tracking-tight text-[#12141A] border-b-2 border-[#BEF264] outline-none bg-transparent max-w-[200px]"
+								placeholder="Your name"
+							/>
+							<button
+								type="submit"
+								className="p-1.5 rounded-xl bg-[#BEF264] hover:bg-[#A3E635] text-[#12141A] shadow-sm transition-all"
+								title="Save Name"
+							>
+								<Check className="w-4 h-4" />
+							</button>
+							<button
+								type="button"
+								onClick={() => setIsEditing(false)}
+								className="p-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 transition-all"
+								title="Cancel"
+							>
+								<X className="w-4 h-4" />
+							</button>
+						</form>
+					) : (
+						<h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-[#12141A] flex items-center gap-2">
+							Welcome Back, {userName}!{" "}
+							<button
+								onClick={() => {
+									setEditValue(userName);
+									setIsEditing(true);
+								}}
+								className="p-1 text-gray-400 hover:text-black transition-colors rounded-lg hover:bg-gray-100"
+								title="Edit username"
+							>
+								<Pencil className="w-4 h-4" />
+							</button>
+							<span className="inline-block animate-bounce">👋</span>
+						</h1>
+					)}
+				</div>
 				<p className="text-xs lg:text-sm text-[#7E8494] font-medium mt-1">
 					Let's see your current expenses &amp; cashflow today
 				</p>
