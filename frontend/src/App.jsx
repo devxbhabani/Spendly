@@ -195,7 +195,7 @@ export default function App() {
         <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
           {/* Header */}
           <Header 
-            userName="Teddy Yu"
+            userName="Bhabani"
             onExport={handleExportCSV}
             onRefresh={loadData}
             onOpenSmsModal={() => setIsSmsModalOpen(true)}
