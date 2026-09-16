@@ -158,7 +158,6 @@ Run the backend locally:
 
 ```bash
 npm start
-# API starts at http://localhost:5000
 ```
 
 ---
@@ -174,7 +173,6 @@ Start the Vite development server:
 
 ```bash
 npm run dev
-# Dashboard opens at http://localhost:5173
 ```
 
 To point the frontend to your local backend instead of Render, create `frontend/.env`:
@@ -235,7 +233,7 @@ For automated background tracking to operate on Android:
 
 ---
 
-## 🌐 API Reference
+## API Reference
 
 Live Base URL: `https://spendly-9qw5.onrender.com`
 
