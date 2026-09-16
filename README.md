@@ -1,4 +1,4 @@
-# 💳 Spendly — Smart Personal Expense & UPI Tracker
+# Spendly — Smart Personal Expense & UPI Tracker
 
 <div align="center">
 
@@ -19,32 +19,36 @@ Ingests and categorizes PhonePe, Google Pay, Paytm, and bank UPI alerts (UCO Ban
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
-### 1. ⚡ Zero-Manual Automatic Expense Tracking
-* **Native Android SMS Interception**: Background `SmsReceiver` catches debits and credits from Indian banks (e.g. UCO Bank, SBI, HDFC, ICICI) the instant an SMS arrives.
-* **PhonePe & UPI Push Notification Listener**: Android `NotificationListenerService` captures transaction notifications from PhonePe, Google Pay, and Paytm even when the bank does not trigger an SMS.
-* **Historical Inbox Sync**: One-tap native sync reads past bank SMS messages and populates your full expense history.
+### 1. Zero-Manual Automatic Expense Tracking
 
-### 2. 🛡️ Smart Deduplication & Spam Protection
-* **10-Minute Cross-Source Window**: When you pay with PhonePe, both a push notification and a bank SMS arrive. Spendly detects matching amounts and timestamps within 10 minutes and links them into a **single transaction** instead of charging you twice.
-* **Accurate Credit vs. Debit Logic**: Correctly differentiates peer-to-peer transfers (e.g., *"Money received: GUNJAN has sent ₹160 to your bank account"* is classified as **INCOME**, not an expense).
-* **Promo & Marketing Filter**: Automatically rejects spam (cashback offers, coupons, recharge discounts) so they never pollute your financial data.
+- **Native Android SMS Interception**: Background `SmsReceiver` catches debits and credits from Indian banks (e.g. UCO Bank, SBI, HDFC, ICICI) the instant an SMS arrives.
+- **PhonePe & UPI Push Notification Listener**: Android `NotificationListenerService` captures transaction notifications from PhonePe, Google Pay, and Paytm even when the bank does not trigger an SMS.
+- **Historical Inbox Sync**: One-tap native sync reads past bank SMS messages and populates your full expense history.
 
-### 3. 📊 100% Real-Data Analytics & Dashboard
-* **No Mock/Placeholder Data**: All metrics, monthly bars, and donut charts are aggregated dynamically from MongoDB Atlas.
-* **Dynamic Metric Cards**: Real-time Total Expenses, Total Income, Daily Average Spend, and PhonePe-specific totals.
-* **Interactive Calendar**: Automatically highlights active spending days with exact daily expenditure pills.
-* **Category Breakdown**: Automatically categorizes transactions into Food & Dining, Shopping, Transportation, Bills & Utilities, UPI Transfers, and Income.
+### 2. Smart Deduplication & Spam Protection
 
-### 4. 📱 Hybrid Web & Native Android Packaging
-* Runs seamlessly as a modern web app in the browser and packages into a native Android APK via **Capacitor**.
-* Includes runtime permission prompts for SMS and Notification Access upon first launch.
-* In-app click-to-edit username with `localStorage` persistence.
+- **10-Minute Cross-Source Window**: When you pay with PhonePe, both a push notification and a bank SMS arrive. Spendly detects matching amounts and timestamps within 10 minutes and links them into a **single transaction** instead of charging you twice.
+- **Accurate Credit vs. Debit Logic**: Correctly differentiates peer-to-peer transfers (e.g., _"Money received: GUNJAN has sent ₹160 to your bank account"_ is classified as **INCOME**, not an expense).
+- **Promo & Marketing Filter**: Automatically rejects spam (cashback offers, coupons, recharge discounts) so they never pollute your financial data.
+
+### 3. 100% Real-Data Analytics & Dashboard
+
+- **No Mock/Placeholder Data**: All metrics, monthly bars, and donut charts are aggregated dynamically from MongoDB Atlas.
+- **Dynamic Metric Cards**: Real-time Total Expenses, Total Income, Daily Average Spend, and PhonePe-specific totals.
+- **Interactive Calendar**: Automatically highlights active spending days with exact daily expenditure pills.
+- **Category Breakdown**: Automatically categorizes transactions into Food & Dining, Shopping, Transportation, Bills & Utilities, UPI Transfers, and Income.
+
+### 4. Hybrid Web & Native Android Packaging
+
+- Runs seamlessly as a modern web app in the browser and packages into a native Android APK via **Capacitor**.
+- Includes runtime permission prompts for SMS and Notification Access upon first launch.
+- In-app click-to-edit username with `localStorage` persistence.
 
 ---
 
-## 🏗️ Architecture & Data Flow
+## Architecture & Data Flow
 
 ```mermaid
 graph TD
@@ -58,7 +62,7 @@ graph TD
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 Expense-Tracker/
@@ -113,27 +117,28 @@ Expense-Tracker/
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
-| Layer | Technology |
-| :--- | :--- |
-| **Frontend Framework** | React 19, Vite 8 |
-| **Styling & UI** | Tailwind CSS v3, Lucide Icons, Canvas Confetti |
-| **Mobile Runtime** | Capacitor 6 (`@capacitor/android`, `@solimanware/capacitor-sms-reader`) |
-| **Native Android** | Java, Android SDK 34, `NotificationListenerService`, `BroadcastReceiver` |
-| **Backend Framework** | Node.js, Express.js 5 |
-| **Database** | MongoDB Atlas (Mongoose ODM) |
-| **Deployment** | Render (Web Service), GitHub Actions |
+| Layer                  | Technology                                                               |
+| :--------------------- | :----------------------------------------------------------------------- |
+| **Frontend Framework** | React 19, Vite 8                                                         |
+| **Styling & UI**       | Tailwind CSS v3, Lucide Icons, Canvas Confetti                           |
+| **Mobile Runtime**     | Capacitor 6 (`@capacitor/android`, `@solimanware/capacitor-sms-reader`)  |
+| **Native Android**     | Java, Android SDK 34, `NotificationListenerService`, `BroadcastReceiver` |
+| **Backend Framework**  | Node.js, Express.js 5                                                    |
+| **Database**           | MongoDB Atlas (Mongoose ODM)                                             |
+| **Deployment**         | Render (Web Service), GitHub Actions                                     |
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
-* **Node.js**: v18.0.0 or higher
-* **Java Development Kit (JDK)**: JDK 17 or Android Studio JBR
-* **Android Studio**: (Only required if compiling native code or running on emulator)
-* **MongoDB Atlas Account**: (Or local MongoDB instance)
+
+- **Node.js**: v18.0.0 or higher
+- **Java Development Kit (JDK)**: JDK 17 or Android Studio JBR
+- **Android Studio**: (Only required if compiling native code or running on emulator)
+- **MongoDB Atlas Account**: (Or local MongoDB instance)
 
 ---
 
@@ -145,12 +150,14 @@ npm install
 ```
 
 Create or verify `backend/.env`:
+
 ```env
 PORT=5000
 MONGODB_URI=your_mongodb_connection_string
 ```
 
 Run the backend locally:
+
 ```bash
 npm start
 # API starts at http://localhost:5000
@@ -166,12 +173,14 @@ npm install
 ```
 
 Start the Vite development server:
+
 ```bash
 npm run dev
 # Dashboard opens at http://localhost:5173
 ```
 
 To point the frontend to your local backend instead of Render, create `frontend/.env`:
+
 ```env
 VITE_API_URL=http://localhost:5000/api
 ```
@@ -181,12 +190,15 @@ VITE_API_URL=http://localhost:5000/api
 ### 3. Android Mobile Build & USB Debugging
 
 #### Option A: Direct Install Pre-compiled APK
+
 If your phone is connected via USB with **USB Debugging** enabled:
+
 ```powershell
 adb install -r Spendly.apk
 ```
 
 #### Option B: Compile from Source
+
 ```powershell
 cd frontend
 # 1. Build web production bundle and copy to Android assets
@@ -202,20 +214,22 @@ cd android
 ```
 
 #### Option C: Open in Android Studio
+
 ```bash
 cd frontend
 npx cap open android
 ```
+
 Select your physical phone or emulator in Android Studio and click the green **Run (▶)** button.
 
 ---
 
-## 📱 Mobile App Setup & Permissions
+## Mobile App Setup & Permissions
 
 For automated background tracking to operate on Android:
 
 1. **SMS Permission**:
-   - On first launch, tap **Allow** on the Android system dialog (*"Allow Spendly to send and view SMS messages"*).
+   - On first launch, tap **Allow** on the Android system dialog (_"Allow Spendly to send and view SMS messages"_).
 2. **Notification Access (For PhonePe Push Notifications)**:
    - When prompted, grant **Notification Access** to **Spendly** in Android Settings. This enables `PaymentNotificationListener` to catch PhonePe alerts in real time without waiting for an SMS.
 3. **Battery Optimization**:
@@ -227,32 +241,32 @@ For automated background tracking to operate on Android:
 
 Live Base URL: `https://spendly-9qw5.onrender.com`
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/` | API status landing page |
-| `GET` | `/api/health` | Service health status and database connectivity |
-| `GET` | `/api/transactions` | Retrieve all transactions ordered by date |
-| `POST` | `/api/transactions` | Create a transaction with automated deduplication |
-| `POST` | `/api/transactions/batch` | Bulk insert transactions (used by native sync) |
-| `DELETE` | `/api/transactions/:id` | Delete a single transaction by ID |
-| `DELETE` | `/api/transactions` | Clear all transaction history |
-| `GET` | `/api/analytics` | Aggregated metrics (totals, monthly trend, category share) |
-| `POST` | `/api/transactions/cleanup`| Trigger database deduplication and spam purge |
+| Method   | Endpoint                    | Description                                                |
+| :------- | :-------------------------- | :--------------------------------------------------------- |
+| `GET`    | `/`                         | API status landing page                                    |
+| `GET`    | `/api/health`               | Service health status and database connectivity            |
+| `GET`    | `/api/transactions`         | Retrieve all transactions ordered by date                  |
+| `POST`   | `/api/transactions`         | Create a transaction with automated deduplication          |
+| `POST`   | `/api/transactions/batch`   | Bulk insert transactions (used by native sync)             |
+| `DELETE` | `/api/transactions/:id`     | Delete a single transaction by ID                          |
+| `DELETE` | `/api/transactions`         | Clear all transaction history                              |
+| `GET`    | `/api/analytics`            | Aggregated metrics (totals, monthly trend, category share) |
+| `POST`   | `/api/transactions/cleanup` | Trigger database deduplication and spam purge              |
 
 ---
 
-## 🧪 SMS & Notification Parsing Support
+## SMS & Notification Parsing Support
 
 Spendly's parsing engine is fine-tuned for Indian banking formats:
 
-* **Bank SMS Formats**: UCO Bank, State Bank of India (SBI), HDFC Bank, ICICI Bank, Axis Bank, Bank of Baroda, Punjab National Bank.
-* **UPI Apps**: PhonePe (`com.phonepe.app`), Google Pay (`com.google.android.apps.nbu.paisa.user`), Paytm (`net.one97.paytm`).
-* **Supported Currency Formats**: `Rs.`, `Rs`, `₹`, `INR` (with comma separators and decimals).
-* **Supported Date Formats**: `DD-MM-YYYY`, `DD/MM/YYYY`, `DD-Mon-YYYY`.
-* **Balance Extraction**: Automatically captures and tracks available account balances (`Avl Bal Rs.XX.XX`).
+- **Bank SMS Formats**: UCO Bank, State Bank of India (SBI), HDFC Bank, ICICI Bank, Axis Bank, Bank of Baroda, Punjab National Bank.
+- **UPI Apps**: PhonePe (`com.phonepe.app`), Google Pay (`com.google.android.apps.nbu.paisa.user`), Paytm (`net.one97.paytm`).
+- **Supported Currency Formats**: `Rs.`, `Rs`, `₹`, `INR` (with comma separators and decimals).
+- **Supported Date Formats**: `DD-MM-YYYY`, `DD/MM/YYYY`, `DD-Mon-YYYY`.
+- **Balance Extraction**: Automatically captures and tracks available account balances (`Avl Bal Rs.XX.XX`).
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the **MIT License** — feel free to use and customize for personal or commercial expense tracking projects.
