@@ -13,8 +13,6 @@
 **Automated, zero-effort expense tracking engineered for Indian digital payments.**  
 Ingests and categorizes PhonePe, Google Pay, Paytm, and bank UPI alerts (UCO Bank, SBI, HDFC, ICICI, etc.) with real-time sync, smart cross-source deduplication, and rich interactive analytics.
 
-[Live API Server](https://spendly-9qw5.onrender.com) • [API Health Check](https://spendly-9qw5.onrender.com/api/health) • [Download APK](Spendly.apk)
-
 </div>
 
 ---
