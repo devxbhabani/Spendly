@@ -12,6 +12,28 @@ export async function getTransactions(req, res) {
 }
 
 //Create a new transaction
+// Helper to detect promotional spam messages
+export function isPromotionalMessage(text) {
+	if (!text) return false;
+	return /(?:cashback\s+waiting|claim\s+your\s+cashback|use\s+code|coupon|flat\s+\d+%\s+off|\d+%\s+off|hurry|offer\s+is\s+valid|shop\s+giva|jewellery|recharge\s+on\s+bob|win\s+up\s+to|reward\s+points)/i.test(
+		text,
+	);
+}
+
+// Helper to determine true type (corrects "Money received ... has sent to your account")
+export function normalizeType(type, rawSms) {
+	if (!rawSms) return type;
+	if (
+		/(?:money\s+received|received\s+from|has\s+sent\s+(?:rs|inr|₹).*to\s+your|credited\s+with|refund\s+of)/i.test(
+			rawSms,
+		)
+	) {
+		return "INCOME";
+	}
+	return type;
+}
+
+// Create a new transaction
 // POST /api/transactions
 export async function createTransaction(req, res) {
 	try {
@@ -32,15 +54,58 @@ export async function createTransaction(req, res) {
 				.json({ error: "Please provide type, amount, and merchant" });
 		}
 
+		// 1. Ignore promotional marketing messages
+		if (isPromotionalMessage(rawSms)) {
+			return res.status(200).json({ message: "Ignored promotional message" });
+		}
+
+		const numAmount = Number(amount);
+		const effectiveType = normalizeType(type, rawSms);
+		const txnDate = date ? new Date(date) : new Date();
+		const cleanSms = rawSms ? rawSms.trim().replace(/\s+/g, " ") : null;
+
+		// 2. Check for exact duplicate rawSms
+		if (cleanSms) {
+			const existingExact = await Transaction.findOne({
+				$or: [
+					{ rawSms: cleanSms },
+					{ rawSms: rawSms },
+				],
+			});
+			if (existingExact) {
+				return res.status(200).json(existingExact);
+			}
+		}
+
+		// 3. Cross-source deduplication (e.g. PhonePe Push Notification + Bank SMS for same transaction)
+		const tenMinutes = 10 * 60 * 1000;
+		const minTime = new Date(txnDate.getTime() - tenMinutes);
+		const maxTime = new Date(txnDate.getTime() + tenMinutes);
+
+		const crossDuplicate = await Transaction.findOne({
+			amount: numAmount,
+			type: effectiveType,
+			date: { $gte: minTime, $lte: maxTime },
+		});
+
+		if (crossDuplicate) {
+			// Already recorded via another channel (e.g. PhonePe notification already logged before Bank SMS)
+			if (account && !crossDuplicate.account) {
+				crossDuplicate.account = account;
+				await crossDuplicate.save();
+			}
+			return res.status(200).json(crossDuplicate);
+		}
+
 		const transaction = await Transaction.create({
-			type,
-			amount: Number(amount),
+			type: effectiveType,
+			amount: numAmount,
 			merchant,
 			category: category || "Other Payment",
 			source: source || "Manual",
 			account: account || null,
-			rawSms: rawSms || null,
-			date: date ? new Date(date) : new Date(),
+			rawSms: cleanSms,
+			date: txnDate,
 		});
 
 		res.status(201).json(transaction);
@@ -62,30 +127,46 @@ export async function batchCreateTransactions(req, res) {
 
 		const insertedDocs = [];
 		for (const item of items) {
-			// Check if duplicate exists
-			let query = {};
-			if (item.rawSms) {
-				query = { rawSms: item.rawSms };
-			} else {
-				query = {
-					amount: Number(item.amount),
-					merchant: item.merchant,
-					type: item.type,
-					date: item.date ? new Date(item.date) : { $exists: true },
-				};
+			if (isPromotionalMessage(item.rawSms)) continue;
+
+			const numAmount = Number(item.amount);
+			const effectiveType = normalizeType(item.type, item.rawSms);
+			const txnDate = item.date ? new Date(item.date) : new Date();
+			const cleanSms = item.rawSms
+				? item.rawSms.trim().replace(/\s+/g, " ")
+				: null;
+
+			// Check exact duplicate
+			let existing = null;
+			if (cleanSms) {
+				existing = await Transaction.findOne({
+					$or: [{ rawSms: cleanSms }, { rawSms: item.rawSms }],
+				});
 			}
 
-			const existing = await Transaction.findOne(query);
+			// Check cross-source duplicate within 15 minutes
+			if (!existing) {
+				const fifteenMins = 15 * 60 * 1000;
+				existing = await Transaction.findOne({
+					amount: numAmount,
+					type: effectiveType,
+					date: {
+						$gte: new Date(txnDate.getTime() - fifteenMins),
+						$lte: new Date(txnDate.getTime() + fifteenMins),
+					},
+				});
+			}
+
 			if (!existing) {
 				const doc = await Transaction.create({
-					type: item.type,
-					amount: Number(item.amount),
+					type: effectiveType,
+					amount: numAmount,
 					merchant: item.merchant,
 					category: item.category || "Other Payment",
 					source: item.source || "Bank SMS",
 					account: item.account || null,
-					rawSms: item.rawSms || null,
-					date: item.date ? new Date(item.date) : new Date(),
+					rawSms: cleanSms,
+					date: txnDate,
 				});
 				insertedDocs.push(doc);
 			}
@@ -248,3 +329,68 @@ export async function getAnalytics(req, res) {
 		res.status(500).json({ error: error.message });
 	}
 }
+
+// Clean up duplicates and misclassifications across the database
+// POST /api/transactions/cleanup
+export async function cleanupDuplicates(req, res) {
+	try {
+		const all = await Transaction.find().sort({ date: 1, createdAt: 1 });
+		const toDeleteIds = [];
+		const seenSms = new Set();
+		const keptList = [];
+
+		for (const t of all) {
+			// 1. Remove promo spam
+			if (isPromotionalMessage(t.rawSms) || isPromotionalMessage(t.merchant)) {
+				toDeleteIds.push(t._id);
+				continue;
+			}
+
+			// 2. Fix misclassified type (e.g. Gunjan sent ₹160 to your bank account)
+			const expectedType = normalizeType(t.type, t.rawSms);
+			if (t.type !== expectedType) {
+				t.type = expectedType;
+				await t.save();
+			}
+
+			// 3. Exact rawSms duplicate check
+			const cleanSms = t.rawSms ? t.rawSms.trim().replace(/\s+/g, " ") : null;
+			if (cleanSms) {
+				if (seenSms.has(cleanSms)) {
+					toDeleteIds.push(t._id);
+					continue;
+				}
+				seenSms.add(cleanSms);
+			}
+
+			// 4. Cross-source duplicate check within 15 minutes (e.g. PhonePe notification + Bank SMS of same payment)
+			const tDate = new Date(t.date).getTime();
+			const isCrossDup = keptList.some(
+				(k) =>
+					k.amount === t.amount &&
+					k.type === t.type &&
+					Math.abs(new Date(k.date).getTime() - tDate) < 15 * 60 * 1000,
+			);
+
+			if (isCrossDup) {
+				toDeleteIds.push(t._id);
+				continue;
+			}
+
+			keptList.push(t);
+		}
+
+		if (toDeleteIds.length > 0) {
+			await Transaction.deleteMany({ _id: { $in: toDeleteIds } });
+		}
+
+		res.status(200).json({
+			message: `Cleaned up database. Removed ${toDeleteIds.length} duplicate/spam records. Kept ${keptList.length} valid transactions.`,
+			removedCount: toDeleteIds.length,
+			remainingCount: keptList.length,
+		});
+	} catch (error) {
+		res.status(500).json({ error: error.message });
+	}
+}
+

@@ -65,15 +65,31 @@ export function parseTransactionSMS(smsText) {
 
 	const cleanText = smsText.replace(/\n/g, " ").trim();
 
+	// Ignore promotional spam
+	if (
+		/(?:cashback\s+waiting|claim\s+your\s+cashback|use\s+code|coupon|flat\s+\d+%\s+off|\d+%\s+off|hurry|offer\s+is\s+valid|shop\s+giva|jewellery|recharge\s+on\s+bob|win\s+up\s+to|reward\s+points)/i.test(
+			cleanText,
+		)
+	) {
+		return null;
+	}
+
 	// 1. Determine Debit vs Credit
+	// Credit keywords take priority when received phrases are present (e.g. "Money received ... has sent ₹160 to your bank account")
+	const isCreditExplicit =
+		/(?:money\s+received|received\s+from|has\s+sent\s+(?:rs|inr|₹).*to\s+your|credited|deposited|refunded)/i.test(
+			cleanText,
+		);
+
 	const isDebit =
-		/(?:debited|paid|sent|withdrawn|spent|transferred\s+to|purchase|txn\s+of)/i.test(
+		!isCreditExplicit &&
+		/(?:debited|paid|withdrawn|spent|transferred\s+to|purchase|txn\s+of|sent\s+(?:rs|inr|₹).*to)/i.test(
 			cleanText,
 		);
+
 	const isCredit =
-		/(?:credited|received|deposited|added|refunded|cashback)/i.test(
-			cleanText,
-		);
+		isCreditExplicit ||
+		/(?:received|added|refund)/i.test(cleanText);
 
 	if (!isDebit && !isCredit) return null;
 

@@ -56,9 +56,14 @@ public class SmsReceiver extends BroadcastReceiver {
         String smsBody = fullMessage.toString().trim();
         Log.d(TAG, "Incoming SMS from " + sender + ": " + smsBody);
 
-        // Verify if it's a transaction SMS
-        boolean isDebit = Pattern.compile("(?i)(debited|paid|sent|withdrawn|spent|transferred to|purchase|txn of)").matcher(smsBody).find();
-        boolean isCredit = Pattern.compile("(?i)(credited|received|deposited|added|refunded)").matcher(smsBody).find();
+        // Ignore promotional messages
+        boolean isPromo = Pattern.compile("(?i)(cashback\\s+waiting|claim\\s+your|use\\s+code|coupon|flat\\s+\\d+%|%\\s*off|hurry|offer\\s+is\\s+valid|reward\\s+points)").matcher(smsBody).find();
+        if (isPromo) return;
+
+        // Verify if it's a transaction SMS (Credit phrases take precedence over "sent to your account")
+        boolean isExplicitCredit = Pattern.compile("(?i)(money\\s+received|received\\s+from|has\\s+sent.*to\\s+your|credited|deposited|refund)").matcher(smsBody).find();
+        boolean isDebit = !isExplicitCredit && Pattern.compile("(?i)(debited|paid|spent|transferred to|purchase|txn of|sent.*to)").matcher(smsBody).find();
+        boolean isCredit = isExplicitCredit || Pattern.compile("(?i)(received|added)").matcher(smsBody).find();
 
         if (!isDebit && !isCredit) {
             return; // Ignore non-transactional messages

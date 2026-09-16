@@ -6,6 +6,7 @@ import {
   deleteTransaction,
   clearAllTransactions,
   getAnalytics,
+  cleanupDuplicates,
 } from '../controllers/transactionController.js';
 
 const router = express.Router();
@@ -17,6 +18,9 @@ router.route('/transactions')
   .delete(clearAllTransactions);
 
 router.post('/transactions/batch', batchCreateTransactions);
+router.route('/transactions/cleanup')
+  .get(cleanupDuplicates)
+  .post(cleanupDuplicates);
 router.delete('/transactions/:id', deleteTransaction);
 router.get('/analytics', getAnalytics);
 

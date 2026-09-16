@@ -58,12 +58,17 @@ public class PaymentNotificationListener extends NotificationListenerService {
         String combined = (title + " " + text + " " + bigText).trim();
         Log.d(TAG, "Intercepted payment notification from " + packageName + ": " + combined);
 
-        // Check if debit or credit
-        boolean isDebit = Pattern.compile("(?i)(paid|debited|sent|spent|transferred to|payment of|txn of)").matcher(combined).find();
-        boolean isCredit = Pattern.compile("(?i)(received|credited|deposited|added|refunded|cashback)").matcher(combined).find();
+        // Ignore promotional notifications
+        boolean isPromo = Pattern.compile("(?i)(cashback\\s+waiting|claim\\s+your|use\\s+code|coupon|flat\\s+\\d+%|%\\s*off|hurry|offer\\s+is\\s+valid|reward\\s+points)").matcher(combined).find();
+        if (isPromo) return;
+
+        // Check if debit or credit (Credit phrases take precedence over "sent to your account")
+        boolean isExplicitCredit = Pattern.compile("(?i)(money\\s+received|received\\s+from|has\\s+sent.*to\\s+your|credited|deposited|refund)").matcher(combined).find();
+        boolean isDebit = !isExplicitCredit && Pattern.compile("(?i)(paid|debited|spent|transferred to|payment of|txn of|sent.*to)").matcher(combined).find();
+        boolean isCredit = isExplicitCredit || Pattern.compile("(?i)(received|added)").matcher(combined).find();
 
         if (!isDebit && !isCredit) {
-            return; // Ignore promotional notifications
+            return; // Ignore non-transactional notifications
         }
 
         // Extract Amount
