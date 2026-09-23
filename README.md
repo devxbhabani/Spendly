@@ -8,7 +8,7 @@
 [![Capacitor](https://img.shields.io/badge/Capacitor-6.2-119EFF?style=flat-square&logo=capacitor&logoColor=white)](https://capacitorjs.com/)
 [![Node.js](https://img.shields.io/badge/Node.js-Express_5-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![MongoDB Atlas](https://img.shields.io/badge/MongoDB-Atlas_Cloud-47A248?style=flat-square&logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
-[![Render](https://img.shields.io/badge/Render-Deployed-46E3B7?style=flat-square&logo=render&logoColor=white)](https://spendly-9qw5.onrender.com)
+[![Render](https://img.shields.io/badge/Render-Deployed-46E3B7?style=flat-square&logo=render&logoColor=white)](https://spendly-745b.onrender.com)
 
 **Automated, zero-effort expense tracking engineered for Indian digital payments.**  
 Ingests and categorizes PhonePe, Google Pay, Paytm, and bank UPI alerts (UCO Bank, SBI, HDFC, ICICI, etc.) with real-time sync, smart cross-source deduplication, and rich interactive analytics.
@@ -235,7 +235,7 @@ For automated background tracking to operate on Android:
 
 ## API Reference
 
-Live Base URL: `https://spendly-9qw5.onrender.com`
+Live Base URL: `https://spendly-745b.onrender.com`
 
 | Method   | Endpoint                    | Description                                                |
 | :------- | :-------------------------- | :--------------------------------------------------------- |

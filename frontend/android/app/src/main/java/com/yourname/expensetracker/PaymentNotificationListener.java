@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
  */
 public class PaymentNotificationListener extends NotificationListenerService {
     private static final String TAG = "SpendlyNotifListener";
-    private static final String API_URL = "https://spendly-9qw5.onrender.com/api/transactions";
+    private static final String API_URL = "https://spendly-745b.onrender.com/api/transactions";
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
