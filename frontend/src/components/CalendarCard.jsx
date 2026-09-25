@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Calendar as CalendarIcon, ChevronDown } from 'lucide-react';
+import { Calendar as CalendarIcon, TrendingUp, TrendingDown } from 'lucide-react';
 import { formatINR } from './MetricCards';
 
-export default function CalendarCard({ calendarDays = {}, onSelectDate }) {
+export default function CalendarCard({ calendarDays = {}, transactions = [], onSelectDate }) {
   const today = new Date().getDate();
   const currentMonthName = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(new Date());
   const [selectedDay, setSelectedDay] = useState(today);
@@ -24,16 +24,40 @@ export default function CalendarCard({ calendarDays = {}, onSelectDate }) {
     cells.push(d);
   }
 
-  // Calculate median spend for days that have expenses
-  const spendAmounts = Object.values(calendarDays).filter(val => val > 0);
-  const avgSpend = spendAmounts.length > 0 ? spendAmounts.reduce((a, b) => a + b, 0) / spendAmounts.length : 0;
+  // Helper to extract debited & credited for a specific day
+  const getDayData = (day) => {
+    if (Array.isArray(transactions) && transactions.length > 0) {
+      let debited = 0;
+      let credited = 0;
+      transactions.forEach((t) => {
+        if (!t.date) return;
+        const d = new Date(t.date);
+        if (d.getDate() === day && d.getMonth() === month && d.getFullYear() === year) {
+          if (t.type === 'EXPENSE') debited += t.amount;
+          else if (t.type === 'INCOME') credited += t.amount;
+        }
+      });
+      if (debited > 0 || credited > 0) {
+        return { debited, credited };
+      }
+    }
+
+    // Fallback to calendarDays prop
+    const entry = calendarDays[day];
+    if (typeof entry === 'number') {
+      return { debited: entry, credited: 0 };
+    } else if (entry && typeof entry === 'object') {
+      return { debited: entry.debited || 0, credited: entry.credited || 0 };
+    }
+    return { debited: 0, credited: 0 };
+  };
 
   const handleDayClick = (day) => {
     setSelectedDay(day);
     if (onSelectDate) onSelectDate(day);
   };
 
-  const selectedDaySpend = calendarDays[selectedDay] || 0;
+  const selectedData = getDayData(selectedDay);
 
   return (
     <div className="bg-white rounded-3xl p-5 lg:p-6 border border-[#E8ECF2] shadow-[0_4px_20px_-2px_rgba(0,0,0,0.03)] flex flex-col justify-between">
@@ -70,11 +94,11 @@ export default function CalendarCard({ calendarDays = {}, onSelectDate }) {
             return <div key={`empty-${idx}`} className="w-8 h-8 mx-auto" />;
           }
 
+          const { debited, credited } = getDayData(day);
+          const hasDebited = debited > 0;
+          const hasCredited = credited > 0;
           const isSelected = selectedDay === day;
           const isToday = day === today;
-          const daySpend = calendarDays[day] || 0;
-          const hasSpend = daySpend > 0;
-          const isHighSpend = hasSpend && daySpend >= avgSpend && spendAmounts.length > 1;
 
           let badgeClasses = "text-gray-600 hover:bg-gray-100";
 
@@ -82,34 +106,68 @@ export default function CalendarCard({ calendarDays = {}, onSelectDate }) {
             badgeClasses = "bg-[#12141A] text-white font-bold ring-2 ring-black shadow-md scale-105";
           } else if (isToday) {
             badgeClasses = "bg-gray-200 text-black font-bold";
-          } else if (isHighSpend) {
-            badgeClasses = "bg-[#FF7A45] text-white font-bold shadow-sm";
-          } else if (hasSpend) {
+          } else if (hasDebited && hasCredited) {
             badgeClasses = "bg-[#BEF264] text-[#12141A] font-bold shadow-sm hover:bg-[#A3E635]";
+          } else if (hasDebited) {
+            badgeClasses = "bg-[#FEE2E2] text-rose-700 font-bold shadow-sm hover:bg-[#FECACA]";
+          } else if (hasCredited) {
+            badgeClasses = "bg-[#D1FAE5] text-emerald-800 font-bold shadow-sm hover:bg-[#A7F3D0]";
           }
+
+          const tooltipParts = [];
+          if (credited > 0) tooltipParts.push(`+${formatINR(credited)} (credited)`);
+          if (debited > 0) tooltipParts.push(`-${formatINR(debited)} (debited)`);
+          const tooltip = tooltipParts.length > 0 ? `Day ${day}: ${tooltipParts.join(' | ')}` : `Day ${day}: No activity`;
 
           return (
             <button
               key={day}
               onClick={() => handleDayClick(day)}
-              title={hasSpend ? `Spend: ${formatINR(daySpend)}` : 'No spend'}
-              className={`w-8 h-8 sm:w-9 sm:h-9 mx-auto rounded-full flex items-center justify-center text-xs transition-all ${badgeClasses}`}
+              title={tooltip}
+              className={`relative w-8 h-8 sm:w-9 sm:h-9 mx-auto rounded-full flex flex-col items-center justify-center text-xs transition-all ${badgeClasses}`}
             >
-              {day}
+              <span>{day}</span>
+              {/* Subtle dual-dots for mixed activity */}
+              {(hasDebited || hasCredited) && !isSelected && (
+                <div className="flex gap-0.5 mt-[-2px]">
+                  {hasCredited && <span className="w-1 h-1 rounded-full bg-emerald-500"></span>}
+                  {hasDebited && <span className="w-1 h-1 rounded-full bg-rose-500"></span>}
+                </div>
+              )}
             </button>
           );
         })}
       </div>
 
-      {/* Dynamic Day Status */}
-      <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
-        <span className="text-gray-400 font-medium">
-          Day {selectedDay} Spend:
-        </span>
-        <span className="font-extrabold text-[#12141A]">
-          {formatINR(selectedDaySpend)}
-        </span>
+      {/* Dynamic Day Status displaying +X(credited) and -Y(debited) */}
+      <div className="mt-4 pt-3 border-t border-gray-100 flex flex-col gap-2">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-gray-400 font-medium">
+            Day {selectedDay} Activity:
+          </span>
+          {selectedData.credited === 0 && selectedData.debited === 0 && (
+            <span className="text-gray-400 italic font-medium">No activity</span>
+          )}
+        </div>
+
+        {(selectedData.credited > 0 || selectedData.debited > 0) && (
+          <div className="flex items-center justify-between flex-wrap gap-2 text-xs font-mono font-semibold">
+            {selectedData.credited > 0 && (
+              <span className="inline-flex items-center gap-1.5 text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-1.5 rounded-xl shadow-xs">
+                <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
+                +{formatINR(selectedData.credited)} (credited)
+              </span>
+            )}
+            {selectedData.debited > 0 && (
+              <span className="inline-flex items-center gap-1.5 text-rose-700 bg-rose-50 border border-rose-200/80 px-2.5 py-1.5 rounded-xl shadow-xs">
+                <TrendingDown className="w-3.5 h-3.5 text-rose-600" />
+                -{formatINR(selectedData.debited)} (debited)
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
 }
+

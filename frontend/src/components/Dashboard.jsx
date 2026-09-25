@@ -48,6 +48,7 @@ export default function Dashboard({
 				<div className="lg:col-span-5 xl:col-span-4">
 					<CalendarCard
 						calendarDays={analytics?.calendarDays || {}}
+						transactions={transactions}
 						onSelectDate={(day) => setActiveDate(day)}
 					/>
 				</div>

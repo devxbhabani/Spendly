@@ -304,14 +304,22 @@ export async function getAnalytics(req, res) {
 			}))
 			.sort((a, b) => b.amount - a.amount);
 
-		// Calendar activity days for current month
+		// Calendar activity days for current month (tracks both debits and credits)
 		const currentMonth = new Date().getMonth();
+		const currentYear = new Date().getFullYear();
 		const calendarDays = {};
-		all.filter((t) => t.type === "EXPENSE").forEach((t) => {
+		all.forEach((t) => {
 			const d = new Date(t.date);
-			if (d.getMonth() === currentMonth) {
+			if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
 				const day = d.getDate();
-				calendarDays[day] = (calendarDays[day] || 0) + t.amount;
+				if (!calendarDays[day]) {
+					calendarDays[day] = { debited: 0, credited: 0 };
+				}
+				if (t.type === "EXPENSE") {
+					calendarDays[day].debited += t.amount;
+				} else if (t.type === "INCOME") {
+					calendarDays[day].credited += t.amount;
+				}
 			}
 		});
 

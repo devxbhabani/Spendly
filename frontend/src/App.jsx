@@ -321,7 +321,10 @@ export default function App() {
               <SpendingChart monthlyData={analytics?.monthlyBreakdown || []} />
             </div>
             <div className="lg:col-span-5 xl:col-span-4">
-              <CalendarCard calendarDays={analytics?.calendarDays || {}} />
+              <CalendarCard 
+                calendarDays={analytics?.calendarDays || {}} 
+                transactions={transactions} 
+              />
             </div>
           </div>
 
