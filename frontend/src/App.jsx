@@ -304,16 +304,71 @@ export default function App() {
             )}
           </div>
 
-          {/* 4 Metric Summary Cards (Pure Real Database Values) */}
-          <MetricCards 
-            totalExpense={analytics?.totalExpense || 0}
-            totalIncome={analytics?.totalIncome || 0}
-            phonePeSpend={analytics?.phonePeSpend || 0}
-            avgDailySpend={analytics?.avgDailySpend || 0}
-            expenseCount={expenseCount}
-            incomeCount={incomeCount}
-            phonePeCount={phonePeCount}
-          />
+          {/* Metric Cards Section */}
+          {(() => {
+            // This Month Calculations
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+
+            const thisMonthTxns = transactions.filter((t) => {
+              if (!t.date) return false;
+              const d = new Date(t.date);
+              return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+            });
+
+            const thisMonthExpenseCount = thisMonthTxns.filter((t) => t.type === "EXPENSE").length;
+            const thisMonthIncomeCount = thisMonthTxns.filter((t) => t.type === "INCOME").length;
+            
+            const thisMonthExpense = thisMonthTxns
+              .filter((t) => t.type === "EXPENSE")
+              .reduce((sum, t) => sum + t.amount, 0);
+            
+            const thisMonthIncome = thisMonthTxns
+              .filter((t) => t.type === "INCOME")
+              .reduce((sum, t) => sum + t.amount, 0);
+
+            const thisMonthPhonePeTxns = thisMonthTxns.filter(
+              (t) => t.type === "EXPENSE" && (t.source === "PhonePe" || /phonepe/i.test(t.rawSms || ""))
+            );
+            const thisMonthPhonePeCount = thisMonthPhonePeTxns.length;
+            const thisMonthPhonePeSpend = thisMonthPhonePeTxns.reduce((sum, t) => sum + t.amount, 0);
+
+            const thisMonthExpenseDaysSet = new Set(
+              thisMonthTxns.filter((t) => t.type === "EXPENSE").map((t) => new Date(t.date).toISOString().slice(0, 10))
+            );
+            const thisMonthAvgDailySpend = thisMonthExpenseDaysSet.size > 0 
+              ? Math.round(thisMonthExpense / thisMonthExpenseDaysSet.size) 
+              : 0;
+
+            return (
+              <>
+                <MetricCards 
+                  title="THIS MONTH OVERVIEW"
+                  totalExpense={thisMonthExpense}
+                  totalIncome={thisMonthIncome}
+                  phonePeSpend={thisMonthPhonePeSpend}
+                  avgDailySpend={thisMonthAvgDailySpend}
+                  expenseCount={thisMonthExpenseCount}
+                  incomeCount={thisMonthIncomeCount}
+                  phonePeCount={thisMonthPhonePeCount}
+                />
+                
+                <MetricCards 
+                  title="LIFETIME OVERVIEW"
+                  isCollapsible={true}
+                  defaultOpen={false}
+                  totalExpense={analytics?.totalExpense || 0}
+                  totalIncome={analytics?.totalIncome || 0}
+                  phonePeSpend={analytics?.phonePeSpend || 0}
+                  avgDailySpend={analytics?.avgDailySpend || 0}
+                  expenseCount={expenseCount}
+                  incomeCount={incomeCount}
+                  phonePeCount={phonePeCount}
+                />
+              </>
+            );
+          })()}
 
           {/* Grid: Real Dual Bar Chart & Calendar */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
