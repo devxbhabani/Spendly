@@ -82,7 +82,7 @@ export default function SmsSyncModal({
 	};
 
 	return (
-		<div className="fixed inset-0 z-50 rounded-3xl flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in no-scrollbar">
+		<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in no-scrollbar">
 			<div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 max-h-[90vh] overflow-y-auto no-scrollbar">
 				{/* Header */}
 				<div className="flex items-center justify-between pb-4 border-b border-gray-100">
