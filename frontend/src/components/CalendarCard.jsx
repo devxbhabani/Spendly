@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import { Calendar as CalendarIcon, TrendingUp, TrendingDown } from 'lucide-react';
+import { Calendar as CalendarIcon, TrendingUp, TrendingDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatINR } from './MetricCards';
 
 export default function CalendarCard({ calendarDays = {}, transactions = [], onSelectDate }) {
-  const today = new Date().getDate();
-  const currentMonthName = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(new Date());
-  const [selectedDay, setSelectedDay] = useState(today);
+  const todayDate = new Date();
+  const [currentDate, setCurrentDate] = useState(todayDate);
+  const [selectedDay, setSelectedDay] = useState(todayDate.getDate());
 
-  // Calculate days in current month
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const currentMonthName = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(currentDate);
+
+  // Calculate days in currently viewed month
   const firstDayIndex = new Date(year, month, 1).getDay();
   const totalDays = new Date(year, month + 1, 0).getDate();
 
@@ -23,6 +24,16 @@ export default function CalendarCard({ calendarDays = {}, transactions = [], onS
   for (let d = 1; d <= totalDays; d++) {
     cells.push(d);
   }
+
+  const prevMonth = () => {
+    setCurrentDate(new Date(year, month - 1, 1));
+    setSelectedDay(1);
+  };
+
+  const nextMonth = () => {
+    setCurrentDate(new Date(year, month + 1, 1));
+    setSelectedDay(1);
+  };
 
   // Helper to extract debited & credited for a specific day
   const getDayData = (day) => {
@@ -37,17 +48,19 @@ export default function CalendarCard({ calendarDays = {}, transactions = [], onS
           else if (t.type === 'INCOME') credited += t.amount;
         }
       });
-      if (debited > 0 || credited > 0) {
-        return { debited, credited };
-      }
+      // Always return from transactions array if it's available, since it contains the full ground truth.
+      // This prevents incorrectly falling back to calendarDays for days with 0 activity.
+      return { debited, credited };
     }
 
-    // Fallback to calendarDays prop
-    const entry = calendarDays[day];
-    if (typeof entry === 'number') {
-      return { debited: entry, credited: 0 };
-    } else if (entry && typeof entry === 'object') {
-      return { debited: entry.debited || 0, credited: entry.credited || 0 };
+    // Fallback to calendarDays prop (only reliable for the current real month if backend restricted)
+    if (month === todayDate.getMonth() && year === todayDate.getFullYear()) {
+      const entry = calendarDays[day];
+      if (typeof entry === 'number') {
+        return { debited: entry, credited: 0 };
+      } else if (entry && typeof entry === 'object') {
+        return { debited: entry.debited || 0, credited: entry.credited || 0 };
+      }
     }
     return { debited: 0, credited: 0 };
   };
@@ -72,9 +85,17 @@ export default function CalendarCard({ calendarDays = {}, transactions = [], onS
           </h3>
         </div>
 
-        {/* Current Month */}
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 bg-[#F4F5F8] px-3 py-1.5 rounded-full">
-          <span>{currentMonthName}</span>
+        {/* Current Month & Navigation */}
+        <div className="flex items-center gap-2">
+          <button onClick={prevMonth} className="p-1 hover:bg-gray-100 rounded-full transition-colors">
+            <ChevronLeft className="w-4 h-4 text-gray-600" />
+          </button>
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 bg-[#F4F5F8] px-3 py-1.5 rounded-full min-w-[100px] justify-center">
+            <span>{currentMonthName}</span>
+          </div>
+          <button onClick={nextMonth} className="p-1 hover:bg-gray-100 rounded-full transition-colors">
+            <ChevronRight className="w-4 h-4 text-gray-600" />
+          </button>
         </div>
       </div>
 
@@ -98,7 +119,7 @@ export default function CalendarCard({ calendarDays = {}, transactions = [], onS
           const hasDebited = debited > 0;
           const hasCredited = credited > 0;
           const isSelected = selectedDay === day;
-          const isToday = day === today;
+          const isToday = day === todayDate.getDate() && month === todayDate.getMonth() && year === todayDate.getFullYear();
 
           let badgeClasses = "text-gray-600 hover:bg-gray-100";
 
