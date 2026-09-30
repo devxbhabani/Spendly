@@ -66,3 +66,14 @@
 .animate-donut {
   animation: dash 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}
