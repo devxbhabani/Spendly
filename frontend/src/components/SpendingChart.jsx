@@ -1,9 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { BarChart3, ChevronDown } from "lucide-react";
 import { formatINR } from "./MetricCards";
 
 export default function SpendingChart({ monthlyData = [] }) {
 	const [hoveredIndex, setHoveredIndex] = useState(null);
+	const scrollRef = useRef(null);
+
+	// Auto-scroll to the current month (right-most) on load/update
+	useEffect(() => {
+		if (scrollRef.current) {
+			scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
+		}
+	}, [monthlyData]);
 
 	const currentMonthIndex = new Date().getMonth();
 	// Fallback default months if empty
@@ -81,62 +89,67 @@ export default function SpendingChart({ monthlyData = [] }) {
 				</div>
 
 				{/* Columns Container */}
-				<div className="flex-1 flex items-end justify-between pl-12 pr-2 h-full z-10 gap-2 sm:gap-3">
-					{data.map((item, idx) => {
-						const actualSpendHeight =
-							chartCeiling > 0
-								? Math.min(
-										100,
-										Math.round((item.spend / chartCeiling) * 100),
-									)
-								: 0;
-						const isHovered = hoveredIndex === idx;
+				<div 
+					ref={scrollRef}
+					className="flex-1 ml-10 overflow-x-auto h-[calc(100%+64px)] -mt-[64px] pt-[64px] z-10 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+				>
+					<div className="flex items-end justify-between h-full min-w-[450px] gap-2 sm:gap-3 pr-2 pl-2">
+						{data.map((item, idx) => {
+							const actualSpendHeight =
+								chartCeiling > 0
+									? Math.min(
+											100,
+											Math.round((item.spend / chartCeiling) * 100),
+										)
+									: 0;
+							const isHovered = hoveredIndex === idx;
 
-						return (
-							<div
-								key={item.month}
-								className="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer relative"
-								onMouseEnter={() => setHoveredIndex(idx)}
-								onMouseLeave={() => setHoveredIndex(null)}
-							>
-								{/* Floating Tooltip with Real DB Values */}
-								{isHovered && (
-									<div className="absolute -top-12 z-30 bg-[#12141A] text-white text-[11px] font-medium py-1.5 px-3 rounded-xl shadow-xl whitespace-nowrap pointer-events-none transform -translate-y-1 transition-all">
-										<div className="font-bold text-[#BEF264]">
-											{item.month} Total
-										</div>
-										<div>{formatINR(item.spend)}</div>
-									</div>
-								)}
-
-								{/* The Bar Track + Value Bar */}
-								<div className="w-full max-w-[28px] sm:max-w-[34px] relative flex flex-col justify-end items-center h-full pb-1">
-									{/* Background Soft Pill */}
-									<div className="w-full h-full bg-[#F4F5F8] rounded-t-xl rounded-b-lg absolute bottom-1 transition-all group-hover:bg-[#EAEFF5]"></div>
-
-									{/* Foreground Vibrant Orange Pill (Actual Spend) */}
-									<div
-										className="w-full bg-[#FF7A45] hover:bg-[#F97316] rounded-t-xl rounded-b-lg relative z-10 transition-all duration-300 shadow-sm origin-bottom"
-										style={{
-											height: `${actualSpendHeight}%`,
-											minHeight: item.spend > 0 ? "6px" : "0px",
-										}}
-									></div>
-								</div>
-
-								{/* X-axis Label */}
-								<span
-									className={`text-[11px] font-semibold mt-2 transition-colors ${
-										isHovered || item.spend > 0
-											? "text-[#12141A] font-bold"
-											: "text-gray-400"
-									}`}
+							return (
+								<div
+									key={item.month}
+									className="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer relative min-w-[32px]"
+									onMouseEnter={() => setHoveredIndex(idx)}
+									onMouseLeave={() => setHoveredIndex(null)}
 								>
-									{item.month}
-								</span>
-							</div>
-						);
-					})}
+									{/* Floating Tooltip with Real DB Values */}
+									{isHovered && (
+										<div className="absolute -top-12 z-30 bg-[#12141A] text-white text-[11px] font-medium py-1.5 px-3 rounded-xl shadow-xl whitespace-nowrap pointer-events-none transform -translate-y-1 transition-all">
+											<div className="font-bold text-[#BEF264]">
+												{item.month} Total
+											</div>
+											<div>{formatINR(item.spend)}</div>
+										</div>
+									)}
+
+									{/* The Bar Track + Value Bar */}
+									<div className="w-full max-w-[28px] sm:max-w-[34px] relative flex flex-col justify-end items-center h-full pb-1">
+										{/* Background Soft Pill */}
+										<div className="w-full h-full bg-[#F4F5F8] rounded-t-xl rounded-b-lg absolute bottom-1 transition-all group-hover:bg-[#EAEFF5]"></div>
+
+										{/* Foreground Vibrant Orange Pill (Actual Spend) */}
+										<div
+											className="w-full bg-[#FF7A45] hover:bg-[#F97316] rounded-t-xl rounded-b-lg relative z-10 transition-all duration-300 shadow-sm origin-bottom"
+											style={{
+												height: `${actualSpendHeight}%`,
+												minHeight: item.spend > 0 ? "6px" : "0px",
+											}}
+										></div>
+									</div>
+
+									{/* X-axis Label */}
+									<span
+										className={`text-[11px] font-semibold mt-2 transition-colors ${
+											isHovered || item.spend > 0
+												? "text-[#12141A] font-bold"
+												: "text-gray-400"
+										}`}
+									>
+										{item.month}
+									</span>
+								</div>
+							);
+						})}
+					</div>
 				</div>
 			</div>
 		</div>
