@@ -17,36 +17,49 @@ Ingests and categorizes PhonePe, Google Pay, Paytm, and bank UPI alerts (UCO Ban
 
 ---
 
-## Key Features
+## 📖 Table of Contents
+
+- [Key Features](#key-features)
+- [Architecture & Data Flow](#architecture--data-flow)
+- [Project Structure](#project-structure)
+- [Core UI Components](#core-ui-components)
+- [Technology Stack](#technology-stack)
+- [Getting Started (Development Guide)](#getting-started-development-guide)
+- [Mobile App Setup & Permissions](#mobile-app-setup--permissions)
+- [Database Schema](#database-schema)
+- [API Reference](#api-reference)
+- [SMS & Notification Parsing Support](#sms--notification-parsing-support)
+- [Future Enhancements](#future-enhancements)
+- [License](#license)
+
+---
+
+## 🌟 Key Features
 
 ### 1. Zero-Manual Automatic Expense Tracking
-
 - **Native Android SMS Interception**: Background `SmsReceiver` catches debits and credits from Indian banks (e.g. UCO Bank, SBI, HDFC, ICICI) the instant an SMS arrives.
 - **PhonePe & UPI Push Notification Listener**: Android `NotificationListenerService` captures transaction notifications from PhonePe, Google Pay, and Paytm even when the bank does not trigger an SMS.
 - **Historical Inbox Sync**: One-tap native sync reads past bank SMS messages and populates your full expense history.
 
 ### 2. Smart Deduplication & Spam Protection
-
 - **10-Minute Cross-Source Window**: When you pay with PhonePe, both a push notification and a bank SMS arrive. Spendly detects matching amounts and timestamps within 10 minutes and links them into a **single transaction** instead of charging you twice.
 - **Accurate Credit vs. Debit Logic**: Correctly differentiates peer-to-peer transfers (e.g., _"Money received: GUNJAN has sent ₹160 to your bank account"_ is classified as **INCOME**, not an expense).
 - **Promo & Marketing Filter**: Automatically rejects spam (cashback offers, coupons, recharge discounts) so they never pollute your financial data.
 
 ### 3. 100% Real-Data Analytics & Dashboard
-
 - **No Mock/Placeholder Data**: All metrics, monthly bars, and donut charts are aggregated dynamically from MongoDB Atlas.
 - **Dynamic Metric Cards**: Real-time Total Expenses, Total Income, Daily Average Spend, and PhonePe-specific totals.
 - **Interactive Calendar**: Automatically highlights active spending days with exact daily expenditure pills.
 - **Category Breakdown**: Automatically categorizes transactions into Food & Dining, Shopping, Transportation, Bills & Utilities, UPI Transfers, and Income.
 
 ### 4. Hybrid Web & Native Android Packaging
-
 - Runs seamlessly as a modern web app in the browser and packages into a native Android APK via **Capacitor**.
 - Includes runtime permission prompts for SMS and Notification Access upon first launch.
 - In-app click-to-edit username with `localStorage` persistence.
 
 ---
 
-## Architecture & Data Flow
+## 🏗️ Architecture & Data Flow
 
 ```mermaid
 graph TD
@@ -60,9 +73,9 @@ graph TD
 
 ---
 
-## Project Structure
+## 📂 Project Structure
 
-```
+```text
 Expense-Tracker/
 │
 ├── Spendly.apk                           # Pre-compiled, installable Android APK (~4MB)
@@ -92,20 +105,24 @@ Expense-Tracker/
     │           └── PaymentNotificationListener.java # Background push notification listener
     ├── src/
     │   ├── components/
-    │   │   ├── Header.jsx                # Date, editable username, sync & export triggers
-    │   │   ├── MetricCards.jsx           # Total Expense, Income, Daily Avg, PhonePe cards
-    │   │   ├── SpendingChart.jsx         # Monthly expense breakdown bar chart
+    │   │   ├── AddExpenseModal.jsx       # Manual expense entry form
     │   │   ├── CalendarCard.jsx          # Interactive monthly calendar with spend highlights
     │   │   ├── CategoryDonut.jsx         # Visual category breakdown donut
-    │   │   ├── TransactionList.jsx       # Real-time transaction history with delete
-    │   │   ├── SmsSyncModal.jsx          # Device SMS sync & manual tester modal
-    │   │   ├── AddExpenseModal.jsx       # Manual expense entry form
+    │   │   ├── Dashboard.jsx             # Main dashboard container
+    │   │   ├── Header.jsx                # Date, editable username, sync & export triggers
+    │   │   ├── MetricCards.jsx           # Total Expense, Income, Daily Avg, PhonePe cards
+    │   │   ├── MobileNav.jsx             # Bottom navigation for mobile screens
     │   │   ├── Sidebar.jsx               # Desktop navigation & branding
-    │   │   └── MobileNav.jsx             # Bottom navigation for mobile screens
+    │   │   ├── SmsSyncModal.jsx          # Device SMS sync & manual tester modal
+    │   │   ├── SpendingChart.jsx         # Monthly expense breakdown bar chart
+    │   │   └── TransactionList.jsx       # Real-time transaction history with delete
     │   ├── services/
-    │   │   ├── api.js                    # REST API client (points to Render cloud backend)
-    │   │   ├── parser.js                 # High-precision Indian SMS & UPI regex parser
+    │   │   ├── api.js                    # REST API client
+    │   │   ├── db.js                     # Local database interface
+    │   │   ├── parser.js                 # SMS and UPI string parser
     │   │   └── smsService.js             # Capacitor native SMS reader interface
+    │   ├── utils/
+    │   │   └── parser.js                 # Helper utility functions for parsing
     │   ├── App.jsx                       # Main dashboard state & auto-sync loop
     │   └── main.jsx                      # React application bootstrap
     ├── capacitor.config.json             # Capacitor app ID & web asset config
@@ -115,7 +132,19 @@ Expense-Tracker/
 
 ---
 
-## Technology Stack
+## 🎨 Core UI Components
+
+The `frontend/src/components` directory houses the modular UI sections of the application:
+- **`Header.jsx` & `Sidebar.jsx`**: Handles application navigation, user profile editing, and top-level actionable items (sync triggers).
+- **`Dashboard.jsx`**: The main view combining the overview metrics, charts, and calendar.
+- **`MetricCards.jsx`**: Displays vital statistics (total expenses, daily averages, specific gateway totals).
+- **`SpendingChart.jsx` & `CategoryDonut.jsx`**: Visual data representations leveraging charting libraries for easy consumption.
+- **`TransactionList.jsx`**: A chronologically ordered, highly interactive list of all parsed transactions.
+- **`SmsSyncModal.jsx` & `AddExpenseModal.jsx`**: Modal dialogs for manual interventions, testing the parser, and managing bulk imports.
+
+---
+
+## 💻 Technology Stack
 
 | Layer                  | Technology                                                               |
 | :--------------------- | :----------------------------------------------------------------------- |
@@ -129,16 +158,13 @@ Expense-Tracker/
 
 ---
 
-## Getting Started
+## 🚀 Getting Started (Development Guide)
 
 ### Prerequisites
-
 - **Node.js**: v18.0.0 or higher
 - **Java Development Kit (JDK)**: JDK 17 or Android Studio JBR
 - **Android Studio**: (Only required if compiling native code or running on emulator)
 - **MongoDB Atlas Account**: (Or local MongoDB instance)
-
----
 
 ### 1. Backend Setup
 
@@ -147,20 +173,17 @@ cd backend
 npm install
 ```
 
-Create or verify `backend/.env`:
-
+Create or verify `backend/.env` with the following variables:
 ```env
 PORT=5000
 MONGODB_URI=your_mongodb_connection_string
 ```
 
 Run the backend locally:
-
 ```bash
 npm start
 ```
-
----
+*(Runs by default on http://localhost:5000)*
 
 ### 2. Frontend Setup
 
@@ -169,32 +192,29 @@ cd frontend
 npm install
 ```
 
-Start the Vite development server:
+Create `frontend/.env` to configure your API URL:
+```env
+# For local backend:
+VITE_API_URL=http://localhost:5000/api
+# Or point to the cloud server:
+# VITE_API_URL=https://spendly-745b.onrender.com/api
+```
 
+Start the Vite development server:
 ```bash
 npm run dev
 ```
-
-To point the frontend to your local backend instead of Render, create `frontend/.env`:
-
-```env
-VITE_API_URL=http://localhost:5000/api
-```
-
----
+*(Runs by default on http://localhost:5173)*
 
 ### 3. Android Mobile Build & USB Debugging
 
 #### Option A: Direct Install Pre-compiled APK
-
 If your phone is connected via USB with **USB Debugging** enabled:
-
 ```powershell
 adb install -r Spendly.apk
 ```
 
 #### Option B: Compile from Source
-
 ```powershell
 cd frontend
 # 1. Build web production bundle and copy to Android assets
@@ -210,30 +230,43 @@ cd android
 ```
 
 #### Option C: Open in Android Studio
-
 ```bash
 cd frontend
 npx cap open android
 ```
-
 Select your physical phone or emulator in Android Studio and click the green **Run (▶)** button.
 
 ---
 
-## Mobile App Setup & Permissions
+## 📱 Mobile App Setup & Permissions
 
-For automated background tracking to operate on Android:
+For automated background tracking to operate on Android devices:
 
 1. **SMS Permission**:
    - On first launch, tap **Allow** on the Android system dialog (_"Allow Spendly to send and view SMS messages"_).
-2. **Notification Access (For PhonePe Push Notifications)**:
+2. **Notification Access (For PhonePe/GPay Push Notifications)**:
    - When prompted, grant **Notification Access** to **Spendly** in Android Settings. This enables `PaymentNotificationListener` to catch PhonePe alerts in real time without waiting for an SMS.
 3. **Battery Optimization**:
    - For uninterrupted background tracking on devices running MIUI / ColorOS / OxygenOS / OneUI, set Spendly's battery usage to **"Unrestricted / Don't optimize"**.
 
 ---
 
-## API Reference
+## 🗄️ Database Schema
+
+The `Transaction` model (located in `backend/models/Transaction.js`) structures data as follows:
+
+- **amount** `(Number)`: The transaction value.
+- **type** `(String)`: Enum: `['expense', 'income']`.
+- **category** `(String)`: E.g., `Food & Dining`, `UPI Transfers`.
+- **date** `(Date)`: The extracted or synchronized timestamp.
+- **source** `(String)`: Enum: `['sms', 'notification', 'manual']`.
+- **sender** `(String)`: The identified sender/bank (e.g., `SBI`, `PhonePe`).
+- **description** `(String)`: Raw snippet or user description.
+- **hash** `(String)`: A unique cryptographic hash generated from `amount`, `date`, and `type` to facilitate smart deduplication.
+
+---
+
+## 🌐 API Reference
 
 Live Base URL: `https://spendly-745b.onrender.com`
 
@@ -251,10 +284,9 @@ Live Base URL: `https://spendly-745b.onrender.com`
 
 ---
 
-## SMS & Notification Parsing Support
+## 🧠 SMS & Notification Parsing Support
 
-Spendly's parsing engine is fine-tuned for Indian banking formats:
-
+Spendly's parsing engine (`frontend/src/services/parser.js`) is fine-tuned for Indian banking formats:
 - **Bank SMS Formats**: UCO Bank, State Bank of India (SBI), HDFC Bank, ICICI Bank, Axis Bank, Bank of Baroda, Punjab National Bank.
 - **UPI Apps**: PhonePe (`com.phonepe.app`), Google Pay (`com.google.android.apps.nbu.paisa.user`), Paytm (`net.one97.paytm`).
 - **Supported Currency Formats**: `Rs.`, `Rs`, `₹`, `INR` (with comma separators and decimals).
@@ -263,6 +295,14 @@ Spendly's parsing engine is fine-tuned for Indian banking formats:
 
 ---
 
-## License
+## 🔮 Future Enhancements
+- **Multi-user Support**: Implementing User Authentication (JWT) and User-specific database isolation.
+- **Budgeting Alerts**: Define monthly category caps with push notification warnings.
+- **Export to CSV/PDF**: Generate comprehensive financial reports directly from the dashboard.
+- **Advanced Machine Learning Parsing**: Transitioning from regex-based to lightweight ML models for zero-configuration support of new bank formats.
+
+---
+
+## 📜 License
 
 This project is licensed under the **MIT License** — feel free to use and customize for personal or commercial expense tracking projects.
