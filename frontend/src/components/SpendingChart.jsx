@@ -5,6 +5,7 @@ import { formatINR } from "./MetricCards";
 export default function SpendingChart({ monthlyData = [] }) {
 	const [hoveredIndex, setHoveredIndex] = useState(null);
 
+	const currentMonthIndex = new Date().getMonth();
 	// Fallback default months if empty
 	const defaultMonths = [
 		"Jan",
@@ -16,14 +17,20 @@ export default function SpendingChart({ monthlyData = [] }) {
 		"Jul",
 		"Aug",
 		"Sep",
-	].map((m) => ({
-		month: m,
-		spend: 0,
-		max: 1000,
-	}));
+		"Oct",
+		"Nov",
+		"Dec",
+	]
+		.slice(0, currentMonthIndex + 1)
+		.map((m) => ({
+			month: m,
+			spend: 0,
+			max: 1000,
+		}));
 
-	const data =
+	const rawData =
 		monthlyData && monthlyData.length > 0 ? monthlyData : defaultMonths;
+	const data = rawData.slice(0, currentMonthIndex + 1);
 	const maxSpendInPeriod = Math.max(...data.map((d) => d.spend), 100);
 	const chartCeiling = Math.max(maxSpendInPeriod * 1.25, 1000);
 
@@ -43,14 +50,14 @@ export default function SpendingChart({ monthlyData = [] }) {
 							Spending &amp; Cashflow Rates
 						</h3>
 						<p className="text-[11px] text-gray-400 font-medium">
-							Real monthly expenses from MongoDB
+							Real monthly expenses
 						</p>
 					</div>
 				</div>
 
 				{/* Period indicator */}
 				<div className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 bg-[#F4F5F8] px-3 py-1.5 rounded-full">
-					<span>Live Database</span>
+					<span>Current Financial Year</span>
 				</div>
 			</div>
 

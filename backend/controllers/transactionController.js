@@ -56,7 +56,9 @@ export async function createTransaction(req, res) {
 
 		// 1. Ignore promotional marketing messages
 		if (isPromotionalMessage(rawSms)) {
-			return res.status(200).json({ message: "Ignored promotional message" });
+			return res
+				.status(200)
+				.json({ message: "Ignored promotional message" });
 		}
 
 		const numAmount = Number(amount);
@@ -67,10 +69,7 @@ export async function createTransaction(req, res) {
 		// 2. Check for exact duplicate rawSms
 		if (cleanSms) {
 			const existingExact = await Transaction.findOne({
-				$or: [
-					{ rawSms: cleanSms },
-					{ rawSms: rawSms },
-				],
+				$or: [{ rawSms: cleanSms }, { rawSms: rawSms }],
 			});
 			if (existingExact) {
 				return res.status(200).json(existingExact);
@@ -267,12 +266,17 @@ export async function getAnalytics(req, res) {
 			}
 		});
 
+		const currentMonthIndex = new Date().getMonth();
+
 		const maxMonthlySpend = Math.max(...Object.values(monthlyMap), 1000);
-		const monthlyBreakdown = monthNames.slice(0, 9).map((m) => ({
-			month: m,
-			spend: monthlyMap[m] || 0,
-			max: Math.max(maxMonthlySpend * 1.25, 5000),
-		}));
+
+		const monthlyBreakdown = monthNames
+			.slice(0, currentMonthIndex + 1)
+			.map((m) => ({
+				month: m,
+				spend: monthlyMap[m] || 0,
+				max: Math.max(maxMonthlySpend * 1.25, 5000),
+			}));
 
 		// Category breakdown
 		const categoryTotals = {};
@@ -349,7 +353,10 @@ export async function cleanupDuplicates(req, res) {
 
 		for (const t of all) {
 			// 1. Remove promo spam
-			if (isPromotionalMessage(t.rawSms) || isPromotionalMessage(t.merchant)) {
+			if (
+				isPromotionalMessage(t.rawSms) ||
+				isPromotionalMessage(t.merchant)
+			) {
 				toDeleteIds.push(t._id);
 				continue;
 			}
@@ -362,7 +369,9 @@ export async function cleanupDuplicates(req, res) {
 			}
 
 			// 3. Exact rawSms duplicate check
-			const cleanSms = t.rawSms ? t.rawSms.trim().replace(/\s+/g, " ") : null;
+			const cleanSms = t.rawSms
+				? t.rawSms.trim().replace(/\s+/g, " ")
+				: null;
 			if (cleanSms) {
 				if (seenSms.has(cleanSms)) {
 					toDeleteIds.push(t._id);
@@ -401,4 +410,3 @@ export async function cleanupDuplicates(req, res) {
 		res.status(500).json({ error: error.message });
 	}
 }
-
