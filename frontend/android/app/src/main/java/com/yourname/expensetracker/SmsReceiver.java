@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
  */
 public class SmsReceiver extends BroadcastReceiver {
     private static final String TAG = "SpendlySmsReceiver";
-    private static final String API_URL = "https://spendly-745b.onrender.com/api/transactions";
+    private static final String API_URL = "https://spendly-kokn.onrender.com/api/transactions";
 
     @Override
     public void onReceive(Context context, Intent intent) {
