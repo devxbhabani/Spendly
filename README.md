@@ -229,8 +229,6 @@ Configure `frontend/.env`:
 # Point to local server for development:
 VITE_API_URL=http://localhost:5000/api
 
-# Or point to the live cloud server:
-# VITE_API_URL=https://spendly-kokn.onrender.com/api
 ```
 
 Run the local Vite dev server:
@@ -326,8 +324,6 @@ Transactions are managed through Mongoose (`backend/models/Transaction.js`):
 ---
 
 ## 🌐 API Reference
-
-**Live Base URL:** `https://spendly-kokn.onrender.com`
 
 | Method   | Endpoint                    | Description                                                 | Sample Payload / Params                                                          |
 | :------- | :-------------------------- | :---------------------------------------------------------- | :------------------------------------------------------------------------------- |
